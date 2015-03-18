@@ -1,8 +1,10 @@
 /* File		: shell.cpp							*/
-/* Author	: Afrizal Fikri (135130xx)			*/
+/* Author	: Afrizal Fikri (13513004)			*/
 /* 			  Nitho Alif I. (13513072)			*/
 /* 			  Fiqie Ulya Sidiastahta (13513602)	*/
+
 #include "shell.h"
+
 using namespace std;
 
 string currentDirectory(){
@@ -34,7 +36,7 @@ string userHome(){
 	return getenv("HOME");
 }
 
-void changeDirectory(string path){
+void changeDirectory(string& path){
 	int errdir = -1;
 	if(path[0] == '~'){
 		string homePath = userHome() + path.substr(1,path.length());
@@ -61,7 +63,7 @@ string readCmd(){
 	return out;
 }
 
-vector<string> parseCmd(string cmdLine){
+vector<string> parseCmd(string& cmdLine){
 	char *cstr = new char [cmdLine.length()+1];
 	strcpy(cstr, cmdLine.c_str());
 	char *p = strtok(cstr, " ");
@@ -74,7 +76,7 @@ vector<string> parseCmd(string cmdLine){
 	return out;
 }
 
-int isBuiltInCommand(vector<string> cmd){
+int isBuiltInCommand(vector<string>& cmd){
 	if (cmd[0]=="exit" || cmd[0]=="cd" || cmd[0]=="jobs" || cmd[0]=="fg"){
 		return 1;	//built-in commands
 	} else{
@@ -82,25 +84,24 @@ int isBuiltInCommand(vector<string> cmd){
 	}
 }
 
-void executeBuiltInCommand(vector<string> cmd){
+void executeBuiltInCommand(vector<string>& cmd){
 	if (cmd[0] == "exit"){
 		exit(EXIT_SUCCESS);
 	} else if(cmd[0] == "cd"){
 		changeDirectory(cmd[1]);
 	} else if(cmd[0] == "jobs"){
-
+		//ISI DEFINISI JOB
 	} else if(cmd[0] == "fg"){
-
+		//ISI DEFINISI FG
 	}
 }
 
-void executeCommand(vector<string> cmd){
-	const char** argv = new const char*[cmd.size()+2];
-	argv[0] = cmd[0].c_str();
-	for(int i=0; i<cmd.size()+1; i++){
-		argv[i+1] = cmd[i].c_str();
+void executeCommand(vector<string>& cmd) {
+	const char** argv = new const char*[cmd.size()+1];
+	for(int i=0; i<cmd.size(); i++){
+		argv[i] = cmd[i].c_str();
 	}
-	argv[cmd.size()+1] = NULL;	
+	argv[cmd.size()] = NULL;
 	execvp(argv[0], (char**)argv);
 	//perror(cmd[0]);
 }

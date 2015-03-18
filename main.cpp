@@ -1,16 +1,15 @@
 /* File		: main.cpp							*/
-/* Author	: Afrizal Fikri (135130xx)			*/
+/* Author	: Afrizal Fikri (13513004)			*/
 /* 			  Nitho Alif I. (13513072)			*/
 /* 			  Fiqie Ulya Sidiastahta (13513602)	*/
 
-#include <iostream>
-#include <vector>
 #include "shell.h"
+
 using namespace std;
 
 int main(int argc, char **argv){
-	cout << Clear;
-	while (1){
+	printf("%s", Clear);
+	while (1) {
 		int childPid;
 		
 		printPrompt();
@@ -18,12 +17,14 @@ int main(int argc, char **argv){
 		vector<string> cmd = parseCmd(cmdLine);
 		if (isBuiltInCommand(cmd)){
 			executeBuiltInCommand(cmd);
-		} else{
+		} else {
 			childPid = fork();
 			if (childPid == 0){
 				executeCommand(cmd);
-			} else{
-				wait();
+				exit(0);
+			} else {
+				int stat;
+				while (wait(&stat) != childPid);
 			}
 
 			/* else{
@@ -35,7 +36,7 @@ int main(int argc, char **argv){
 			}*/
 		}
 	}
-	cout << endl;
+	puts("");
 	return 0;
 }
 
