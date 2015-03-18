@@ -2,12 +2,13 @@
 /* Author	: Afrizal Fikri (135130xx)			*/
 /* 			  Nitho Alif I. (13513072)			*/
 /* 			  Fiqie Ulya Sidiastahta (13513602)	*/
+
 #include <iostream>
 #include <vector>
 #include "shell.h"
 using namespace std;
 
-int main(int argc, char const *argv[]){
+int main(int argc, char **argv){
 	cout << Clear;
 	while (1){
 		int childPid;
