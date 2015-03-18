@@ -63,16 +63,14 @@ string readCmd(){
 	return out;
 }
 
-vector<string> parseCmd(string& cmdLine){
-	char *cstr = new char [cmdLine.length()+1];
-	strcpy(cstr, cmdLine.c_str());
-	char *p = strtok(cstr, " ");
-	vector<string> out;
-	while (p != 0){
-		out.push_back(p);
+queue<string> parseCmd(string& cmdLine) {
+	const char *cstr = cmdLine.c_str();
+	char *p = strtok((char*)cstr, " ");
+	queue<string> out;
+	while (p != NULL){
+		out.push(string(p));
 		p = strtok(NULL, " ");
 	}
-	delete[] cstr;
 	return out;
 }
 
@@ -103,5 +101,4 @@ void executeCommand(vector<string>& cmd) {
 	}
 	argv[cmd.size()] = NULL;
 	execvp(argv[0], (char**)argv);
-	//perror(cmd[0]);
 }

@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <queue>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -29,7 +30,7 @@ void changeDirectory(string& path);
 
 void printPrompt();
 string readCmd();
-vector<string> parseCmd(string& cmdLine);
+queue<string> parseCmd(string& cmdLine);
 
 int isBuiltInCommand(vector<string>& cmd);
 void executeBuiltInCommand(vector<string>& cmd);
