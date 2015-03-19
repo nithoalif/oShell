@@ -10,18 +10,39 @@
 
 using namespace std;
 
-pid_t childPid;
-int fd_snd[2];  // file descriptor send
-int fd_rcv[2];  // file descriptor receieve
+pid_t childpid;
+int input, output, fd[2];  // file descriptor 
 
 char buf[1<<20];	// buffer
+
+void caller (int in, int out, vector<string>& cmd)
+{
+	if ((childpid = fork ()) == 0)
+	{
+		if (in != 0)
+		{
+			dup2(in, STDIN_FILENO);
+			close(in);
+		}
+
+		if (out != 1)
+		{
+			dup2(out, STDOUT_FILENO);
+			close(out);
+		}
+
+		executeCommand(cmd);
+	}
+	else
+	{
+		int stat;
+		while(wait(&stat) != childpid);
+	}
+}
 
 int main(int argc, char **argv)
 {
 	printf("%s", Clear);
-
-	pipe(fd_snd);
-	pipe(fd_rcv);
 
 	while (true) 
 	{
@@ -33,6 +54,7 @@ int main(int argc, char **argv)
 		while (!cmdAll.empty())
 		{
 			vector<string> cmd;
+			pipe(fd);
 
 			while (!cmdAll.empty() && cmdAll.front() != "|") {
 				cmd.push_back(cmdAll.front());
@@ -40,49 +62,23 @@ int main(int argc, char **argv)
 			}
 			if (!cmdAll.empty()) cmdAll.pop();
 
+			if (cmdAll.empty())
+				output = STDOUT_FILENO;
+			else
+				output = fd[WRITE];
+
 			if (isBuiltInCommand(cmd))
 			{
-				//dup2(1, fd[0]);		/* redirect stdout to pipe-in */
-				
 				executeBuiltInCommand(cmd);
 			}
 			else
 			{
-				childPid = fork();
-				if (childPid == 0)		/* child */
-				{
-					write(fd_snd[WRITE], buf, strlen(buf) + 1);
-
-					close(fd_snd[WRITE]);
-					close(fd_rcv[READ]);
-
-					dup2(fd_rcv[WRITE], STDOUT_FILENO);		/* redirect stdout to pipe-in */
-					dup2(fd_snd[READ], STDIN_FILENO);		/* redirect pipe-out to stdin */
-
-					executeCommand(cmd);
-				} 
-				else 			/* parent */
-				{
-					int status;
-					while (wait(&status) != childPid);
-					//cout << "cok" << endl;
-
-					/* redirecting */
-					read(fd_rcv[READ], buf, sizeof(buf));
-					puts(buf);
-				}
-
-				/* else{
-					if (isBackgroundJob(cmd)){
-
-					} else{
-						waitpid(childPid);
-					}
-				}*/
+				caller(input, output, cmd);
 			}
-		}
 
-		puts(buf);
+			close(fd[WRITE]);				
+			input = fd[READ];
+		}
 	}
 	puts("");
 	return 0;
