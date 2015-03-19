@@ -30,6 +30,7 @@ public:
 	void execBuiltInCmd(vector<string> cmd);
 	void execExternCmd(vector<string> cmd);
 	void caller(int in, int out, vector<string>& cmd);
+	void run(vector<string>& cmd, int* fd);
 
 private:
 	systemC userSystem;
@@ -116,12 +117,12 @@ void shellC::caller (int in, int out, vector<string>& cmd)
 	pid_t childpid;
 	if ((childpid = fork ()) == 0)
 	{
-		if (in != 0)
+		if (in != STDIN_FILENO)
 		{
 			dup2(in, STDIN_FILENO);
 			close(in);
 		}
-		if (out != 1)
+		if (out != STDOUT_FILENO)
 		{
 			dup2(out, STDOUT_FILENO);
 			close(out);
@@ -133,6 +134,41 @@ void shellC::caller (int in, int out, vector<string>& cmd)
 	{
 		int stat;
 		while(wait(&stat) != childpid);
+	}
+}
+
+void shellC::run(vector<string>& cmd, int* fd) 
+{
+	vector<string> cmdCur;
+
+	int head = 0;
+	int input = STDIN_FILENO, output;
+	
+	while(head < cmd.size()) {
+		pipe(fd);
+
+		/* tokenize pipe command */
+		cmdCur.clear();
+		while(head < cmd.size() && cmd[head] != "|") {
+			cmdCur.push_back(cmd[head++]);
+		}
+
+		if (head < cmd.size()) {
+			head++;			/* skip "|" */
+			output = fd[WRITE];
+		} else {
+			//close(output);
+			output = STDOUT_FILENO;
+		}
+
+		if(isBuiltInCmd(cmdCur)) {
+			execBuiltInCmd(cmdCur);
+		} else {
+			caller(input, output, cmdCur);
+		}
+
+		close(fd[WRITE]);
+		input = fd[READ];
 	}
 }
 
