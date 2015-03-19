@@ -12,9 +12,14 @@
 #include <readline/history.h>
 #include <readline/readline.h>
 #include "systemC.h"
+
+#define READ 	0
+#define WRITE 	1
+
 using namespace std;
 
-class shellC{
+class shellC
+{
 public:
 	shellC();
 	virtual ~shellC();
@@ -24,17 +29,15 @@ public:
 	bool isBuiltInCmd(vector<string> cmd);
 	void execBuiltInCmd(vector<string> cmd);
 	void execExternCmd(vector<string> cmd);
-	//bool isBackgroundJob(vector<string> cmd);
-	//void createBGJob();
+	void caller(int in, int out, vector<string>& cmd);
 
 private:
 	systemC userSystem;
 };
 
-shellC::shellC(){
-}
-shellC::~shellC(){
-}
+shellC::shellC(){}
+shellC::~shellC(){}
+
 string shellC::printPrompt(){
 	return userSystem.currentUser() + "@" + userSystem.currentHost() + ":" + userSystem.currentDirectory() + " (~0_0)~ ";
 }
@@ -107,6 +110,32 @@ void shellC::execExternCmd(vector<string> cmd){
 		}
 	}
 }
+
+void shellC::caller (int in, int out, vector<string>& cmd)
+{
+	pid_t childpid;
+	if ((childpid = fork ()) == 0)
+	{
+		if (in != 0)
+		{
+			dup2(in, STDIN_FILENO);
+			close(in);
+		}
+		if (out != 1)
+		{
+			dup2(out, STDOUT_FILENO);
+			close(out);
+		}
+
+		execExternCmd(cmd);
+	}
+	else
+	{
+		int stat;
+		while(wait(&stat) != childpid);
+	}
+}
+
 /*
 void shellC::isBackgroundJob(){
 
